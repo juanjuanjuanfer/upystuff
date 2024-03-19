@@ -1,10 +1,9 @@
-
+import random
+import multiprocessing
 
 # pi_serial
 
-#import random
-
-def pi_serial(samples = 10000000):
+def pi_serial(samples):
     hits = 0
     for i in range(samples):
         x = random.uniform(-1, 1)
@@ -15,12 +14,8 @@ def pi_serial(samples = 10000000):
     pi = 4.0 * hits / samples
     return pi
 
-#print(pi_serial())
 
-# pi_parallel
-
-import multiprocessing
-import random
+# pi_apply_async
 
 def sample():
     x = random.uniform(-1, 1)
@@ -32,13 +27,32 @@ def sample():
         return 0
 
 
-if __name__ == '__main__':
-
+def pi_apply_async():
     samples = 1_000_000
     pool = multiprocessing.Pool()
     results_async = [pool.apply_async(sample) for i in range(samples)]
     pool.close()
     pool.join()    
     hits = sum(r.get() for r in results_async)
-    pi = 4.0 * hits / samples
-    print(pi)
+    return 4.0 * hits / samples
+
+
+
+# pi_apply_async_chunked
+
+def sample_multiple(samples_partial):
+    return sum(sample() for _ in range(samples_partial))
+
+def pi_apply_async_chunked(samples):
+    n_tasks = 10
+    chunk_size = samples // n_tasks
+    pool = multiprocessing.Pool()
+
+    results_async = [pool.apply_async(sample_multiple, (chunk_size,)) for _ in range(n_tasks)]
+    hits = sum(r.get() for r in results_async)
+    pool.close()
+    pool.join()
+
+    return 4.0 * hits / samples
+
+

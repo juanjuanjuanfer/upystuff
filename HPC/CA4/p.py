@@ -1,26 +1,21 @@
 import multiprocessing
+import random
 
-def hi():
-    return 1
+def sample():
+    x, y = random.random(), random.random()
+    return 1 if x*x + y*y <= 1 else 0
 
-def callback(result):
-    print(f"Result: {result}")
+def sample_multiple(samples_partial):
+    return sum(sample() for _ in range(samples_partial))
 
-def error_callback(error):
-    print(f"Error: {error}")
+samples = 10000  # Total number of samples
+n_tasks = 10
+chunk_size = samples // n_tasks
 
-if __name__ == '__main__':
-    pool = multiprocessing.Pool()
+# Using a context manager to ensure pools are properly closed
+with multiprocessing.Pool() as pool:
+    results_async = [pool.apply_async(sample_multiple, (chunk_size,)) for _ in range(n_tasks)]
+    hits = sum(r.get() for r in results_async)
 
-    async_result = pool.apply_async(hi)
-    pool.close()
-    pool.join()
-
-    print(async_result.get())
-    """
-    try:
-        result = async_result.get()  # This is where errors will be raised if any occurred.
-        print(result)
-    except Exception as e:
-        print(f"An error occurred: {e}")
-"""
+pi = 4.0 * hits / samples
+print(pi)

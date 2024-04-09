@@ -2,7 +2,7 @@ import numpy as np
 import random
 
 class numpy_kmeans:
-    def __init__(self, k=10, max_iterations=100):
+    def __init__(self, k=3, max_iterations=100):
         self.k = k
         self.max_iterations = max_iterations
         self.centroids = None
